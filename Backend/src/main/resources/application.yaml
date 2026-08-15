@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: 01
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/incident-db
+    username: admin
+    password: admin
