@@ -1,5 +1,5 @@
 package com.inso.dev.services;
-import com.inso.dev.domain.Incident;
+import com.inso.dev.domain.IncidentDemo;
 import com.inso.dev.infrastructure.IncidentRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +13,13 @@ public class IncidentService {
         this.incidentRepository = incidentRepository;
     }
 
-    public Incident create(String name, String detectedInVersion, String status){
-        Incident incident = new Incident(name, detectedInVersion, status);
-        Incident saved = incidentRepository.save(incident);
+    public IncidentDemo create(String name, String detectedInVersion, String status){
+        IncidentDemo incidentDemo = new IncidentDemo(name, detectedInVersion, status);
+        IncidentDemo saved = incidentRepository.save(incidentDemo);
         return saved;
     }
 
-    public List<Incident> getAllIncidents(){
+    public List<IncidentDemo> getAllIncidents(){
         return incidentRepository.getAllIncidents();
     }
 

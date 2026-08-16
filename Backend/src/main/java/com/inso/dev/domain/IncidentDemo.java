@@ -8,14 +8,14 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class Incident {
+public class IncidentDemo {
     private UUID id;
     private String name;
     private String detectedInVersion;
     private String status;
     private Instant createdAt;
 
-    public Incident(String name, String detectedInVersion, String status){
+    public IncidentDemo(String name, String detectedInVersion, String status){
         id=UUID.randomUUID();
         this.name = name;
         this.detectedInVersion = detectedInVersion;

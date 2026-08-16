@@ -9,11 +9,11 @@ Generated Application.java with `@SpringBootApplication` and `main()` — the en
 Application.java
 
 **Step 3: Configure the database connection**
-Created application.yaml and pointed `spring.datasource` at a local PostgreSQL instance (`incident-report` DB, admin/admin credentials). This tells Spring Boot how to connect before any entity or repository can actually persist anything.
+Created application.yaml and pointed `spring.datasource` at a local PostgreSQL instance (`incidentDemo-report` DB, admin/admin credentials). This tells Spring Boot how to connect before any entity or repository can actually persist anything.
 application.yaml
 
 **Step 4: Design the database schema**
-Wrote V1_create_incident_table.sql defining the `incident` table (`id`, `name`, `detected_in_version`, `status`, `created_at`). This establishes the real shape of stored data, matching what the entity will later mirror.
+Wrote V1_create_incident_table.sql defining the `incidentDemo` table (`id`, `name`, `detected_in_version`, `status`, `created_at`). This establishes the real shape of stored data, matching what the entity will later mirror.
 V1_create_incident_table.sql
 
 **Step 5: Model the core business concept (domain layer)**
@@ -21,7 +21,7 @@ Created Incident.java as a plain, framework-free domain class with `id`, `name`,
 Incident.java
 
 **Step 6: Create the JPA entity (persistence mirror of the domain)**
-Built IncidentEntity.java with `@Entity`, `@Table(name = "incident")`, and `@Column` annotations matching the SQL schema column-for-column. This is the object Hibernate actually understands and maps to rows.
+Built IncidentEntity.java with `@Entity`, `@Table(name = "incidentDemo")`, and `@Column` annotations matching the SQL schema column-for-column. This is the object Hibernate actually understands and maps to rows.
 IncidentEntity.java
 
 **Step 7: Bridge domain and entity with a mapper**
@@ -33,7 +33,7 @@ Created the `IncidentRepository` interface listing what operations the business 
 IncidentRepository.java
 
 **Step 9: Let Spring Data generate the low-level JPA plumbing**
-Created `SpringDataIncidentJPARepository extends JpaRepository<IncidentEntity, UUID>` — a one-line interface that gets Spring Data to auto-implement basic CRUD against the `incident` table.
+Created `SpringDataIncidentJPARepository extends JpaRepository<IncidentEntity, UUID>` — a one-line interface that gets Spring Data to auto-implement basic CRUD against the `incidentDemo` table.
 SpringDataIncidentJPARepository.java
 
 **Step 10: Implement the port (the "adapter")**

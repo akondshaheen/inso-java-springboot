@@ -1,29 +1,29 @@
 package com.inso.dev.infrastructure;
 
-import com.inso.dev.domain.Incident;
+import com.inso.dev.domain.IncidentDemo;
 
 public final class IncidentMapper {
 
-    public static IncidentEntity toIncidentEntity(Incident incident){
-        if(incident==null){
+    public static IncidentEntity toIncidentEntity(IncidentDemo incidentDemo){
+        if(incidentDemo ==null){
             throw new IllegalArgumentException("Incident can not be null");
         }
         IncidentEntity incidentEntity = new IncidentEntity();
 
-        incidentEntity.setId(incident.getId());
-        incidentEntity.setName(incident.getName());
-        incidentEntity.setStatus(incident.getStatus());
-        incidentEntity.setCreatedAt(incident.getCreatedAt());
-        incidentEntity.setDetectedInVersion(incident.getDetectedInVersion());
+        incidentEntity.setId(incidentDemo.getId());
+        incidentEntity.setName(incidentDemo.getName());
+        incidentEntity.setStatus(incidentDemo.getStatus());
+        incidentEntity.setCreatedAt(incidentDemo.getCreatedAt());
+        incidentEntity.setDetectedInVersion(incidentDemo.getDetectedInVersion());
         return incidentEntity;
     }
 
-    public static Incident toIncidentDomain(IncidentEntity incidentEntity){
+    public static IncidentDemo toIncidentDomain(IncidentEntity incidentEntity){
 
         if (incidentEntity==null){
             throw new IllegalArgumentException("Incident is not exist");
         }
 
-        return new Incident(incidentEntity.getId(), incidentEntity.getName(), incidentEntity.getDetectedInVersion(), incidentEntity.getStatus(), incidentEntity.getCreatedAt());
+        return new IncidentDemo(incidentEntity.getId(), incidentEntity.getName(), incidentEntity.getDetectedInVersion(), incidentEntity.getStatus(), incidentEntity.getCreatedAt());
     }
 }

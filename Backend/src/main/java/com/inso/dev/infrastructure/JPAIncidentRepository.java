@@ -1,6 +1,6 @@
 package com.inso.dev.infrastructure;
 
-import com.inso.dev.domain.Incident;
+import com.inso.dev.domain.IncidentDemo;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,24 +17,24 @@ public class JPAIncidentRepository implements IncidentRepository{
     }
 
     @Override
-    public Incident save(Incident incident) {
-        IncidentEntity incidentEntity = IncidentMapper.toIncidentEntity(incident);
+    public IncidentDemo save(IncidentDemo incidentDemo) {
+        IncidentEntity incidentEntity = IncidentMapper.toIncidentEntity(incidentDemo);
         IncidentEntity save = springDataIncidentJPARepository.save(incidentEntity);
         return IncidentMapper.toIncidentDomain(save);
     }
 
     @Override
-    public List<Incident> getAllIncidents() {
+    public List<IncidentDemo> getAllIncidents() {
         return springDataIncidentJPARepository.findAll().stream().map(IncidentMapper::toIncidentDomain).toList();
     }
 
     @Override
-    public Optional<Incident> findByStatus(String status) {
+    public Optional<IncidentDemo> findByStatus(String status) {
         return Optional.empty();
     }
 
     @Override
-    public Incident update(Incident incident) {
+    public IncidentDemo update(IncidentDemo incidentDemo) {
         return null;
     }
 

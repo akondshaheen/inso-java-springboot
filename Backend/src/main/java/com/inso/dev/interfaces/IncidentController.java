@@ -1,6 +1,6 @@
 package com.inso.dev.interfaces;
 
-import com.inso.dev.domain.Incident;
+import com.inso.dev.domain.IncidentDemo;
 import com.inso.dev.interfaces.rest.IncidentRequest;
 import com.inso.dev.interfaces.rest.IncidentResponse;
 import com.inso.dev.services.IncidentService;
@@ -22,7 +22,7 @@ public class IncidentController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public IncidentResponse create(@RequestBody IncidentRequest incidentRequest){
-            Incident saved = incidentService.create(incidentRequest.getName(), incidentRequest.getDetectedInVersion(), incidentRequest.getStatus());
+            IncidentDemo saved = incidentService.create(incidentRequest.getName(), incidentRequest.getDetectedInVersion(), incidentRequest.getStatus());
 
             IncidentResponse incidentResponse = new IncidentResponse(
                     saved.getName(),
@@ -34,7 +34,7 @@ public class IncidentController {
         }
 
     @GetMapping
-    public List<Incident> getAll(){
+    public List<IncidentDemo> getAll(){
         return incidentService.getAllIncidents();
     }
 
