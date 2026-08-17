@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        STEP 1 OF OUR BUILD SEQUENCE: THE POM FILE
+        =========================================================================
+        The pom.xml (Project Object Model) is Maven's configuration file. It
+        describes three things: what this project IS (groupId/artifactId/
+        version), what LIBRARIES it depends on, and how it should be BUILT
+        (plugins). Maven reads this file before doing anything else - it
+        downloads every listed dependency (and their own dependencies) into a
+        local cache (~/.m2/repository) and puts them all on the classpath so
+        our Java code can use them.
+
+        The "parent" below tells Maven to reuse Spring Boot's own tested
+        combination of dependency versions (called "dependency management").
+        Because of this, most dependencies below do not need an explicit
+        <version> - Spring Boot has already chosen a version of each library
+        that is known to work correctly together. This avoids "dependency
+        hell", where two libraries need conflicting versions of a third one.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.inso.learning</groupId>
+    <artifactId>taskflow</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>taskflow</name>
+    <description>
+        TaskFlow - a small learning project used to practice Java and Spring
+        Boot concepts for a Junior/Mid-level Software Engineer interview.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+        <!--
+            spring-boot-starter-webmvc brings in everything needed to build a
+            REST API: an embedded Tomcat server, Spring MVC (the framework
+            that maps HTTP requests to our @RestController methods), and
+            Jackson (which turns Java objects into JSON and back again).
+            Note: in Spring Boot 4.1 this starter was renamed from
+            "spring-boot-starter-web" to "spring-boot-starter-webmvc".
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!--
+            spring-boot-starter-data-jpa brings in Hibernate (the JPA
+            implementation that actually talks to the database) plus Spring
+            Data JPA (which lets us write repository interfaces without
+            writing SQL by hand for common operations).
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!--
+            Bean Validation support. This lets us annotate request DTO fields
+            with things like @NotBlank and @Size, and have Spring automatically
+            reject bad requests with a 400 Bad Request before our own code
+            even runs.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL JDBC driver: the library that lets Java talk to Postgres over the network. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            H2 is a small in-memory database. We use it only for automated
+            tests so that tests are fast and do not depend on a real Postgres
+            server being available.
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            Lombok removes boilerplate (getters, setters, constructors) by
+            generating it at compile time from annotations. We use it
+            sparingly so that important Java concepts (like constructors)
+            stay visible to us as learners rather than being hidden away.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            spring-boot-starter-test bundles JUnit 5, Mockito, AssertJ and
+            Spring's test utilities into one dependency - the standard way
+            to test a Spring Boot application.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            Spring Boot 4 split the test "slice" annotations (like
+            @DataJpaTest and @WebMvcTest) out of spring-boot-starter-test and
+            into dependencies matching each starter. We need this one for
+            @DataJpaTest, which starts only the JPA-related beans instead of
+            the whole application - much faster for testing repositories.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Matching test slice for @WebMvcTest, used to test controllers in isolation using MockMvc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            STEP (SECURITY STAGE): spring-boot-starter-security brings in
+            Spring Security, the framework that intercepts every incoming HTTP
+            request BEFORE it reaches our controllers, decides whether the
+            caller is authenticated and authorised, and gives us
+            BCryptPasswordEncoder for safely hashing passwords.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+            PERFORMANCE STAGE: spring-boot-starter-cache brings in Spring's
+            caching abstraction (@Cacheable, @CacheEvict). Combined with
+            @EnableCaching on our main application class, and with no other
+            caching library on the classpath, Spring Boot auto-configures a
+            simple in-memory ConcurrentMapCacheManager for us - good enough
+            to learn the CONCEPT of caching, though a real production system
+            would normally use Redis or a similar dedicated cache so that
+            cached data can be shared across multiple application instances.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!--
+            PERFORMANCE STAGE: spring-boot-starter-actuator exposes
+            production-grade operational endpoints (like /actuator/health and
+            /actuator/metrics) that report on the health and internal
+            behaviour of a running application - things like database
+            connection pool usage, HTTP request timings, and JVM memory. We
+            only expose a small, safe subset of these below (see
+            application.yml's "management" section and SecurityConfig's
+            permitAll rule for "/actuator/health").
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!--
+            jjwt is a small, focused library for creating and verifying JSON
+            Web Tokens. We could theoretically implement JWT signing by hand
+            with Java's own cryptography classes, but that would mean
+            re-implementing a security-critical algorithm ourselves - exactly
+            the kind of code where a small mistake can create a serious
+            vulnerability. Using a well-reviewed library for the cryptography,
+            while writing our OWN simple code around it (deciding what claims
+            to store, when a token is valid), is the right trade-off here.
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            spring-security-test gives us test helpers (like
+            @WithMockUser) for simulating an authenticated user inside a
+            @WebMvcTest, without needing a real JWT for every test.
+        -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

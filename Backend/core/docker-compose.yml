@@ -1,0 +1,87 @@
+# =============================================================================
+# STAGE 12: DOCKER COMPOSE - RUNNING TASKFLOW TOGETHER WITH A REAL DATABASE
+# =============================================================================
+#
+# WHAT PROBLEM DOES docker-compose SOLVE?
+# -----------------------------------------------------------------------
+# Our application needs a real Postgres database to talk to. Running the
+# app container and a database container separately, and manually wiring
+# them together, is tedious and easy to get wrong. Docker Compose lets us
+# describe every container our application needs ("services"), how they
+# should be built or which image to use, and how they can reach each
+# other, all in ONE file - then "docker compose up" starts everything
+# together in the right order, on a private network Compose creates for
+# us automatically.
+#
+# HOW DO THE TWO CONTAINERS TALK TO EACH OTHER?
+# -----------------------------------------------------------------------
+# Inside that private Compose network, each service can reach the other
+# using its SERVICE NAME as a hostname - this is why SPRING_DATASOURCE_URL
+# below points at "db" (the service name defined below), not
+# "localhost". "localhost" inside the "app" container would mean the app
+# container itself, not the separate "db" container next to it - a very
+# common first mistake when containerising an application for the first
+# time.
+#
+# WHY ENVIRONMENT VARIABLES INSTEAD OF EDITING application.yml?
+# -----------------------------------------------------------------------
+# Spring Boot automatically lets any property in application.yml be
+# overridden by an environment variable of the matching name (using
+# "relaxed binding": SPRING_DATASOURCE_URL maps to
+# "spring.datasource.url"). This means the exact same, unmodified .jar
+# file can run with different settings in different environments (a
+# teammate's laptop, a CI pipeline, production) purely by changing
+# environment variables - we never need to rebuild the image just to
+# point it at a different database.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: taskflow
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+    ports:
+      # "5433:5432" maps the container's Postgres port to port 5433 on
+      # our own machine (avoiding a clash with any Postgres already
+      # running locally), purely so we can optionally connect to it
+      # directly with a database tool while developing. The "app"
+      # service below does not need this mapping at all - it reaches
+      # "db" directly over the internal Compose network on the
+      # container's own port 5432.
+      - "5433:5432"
+    volumes:
+      # A NAMED VOLUME persists the database's actual data files outside
+      # the container's own temporary filesystem. Without this, every
+      # "docker compose down" would silently delete all our data along
+      # with the container - a volume survives container restarts and
+      # recreation.
+      - taskflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskflow -d taskflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      # "depends_on" with a healthcheck condition tells Compose to wait
+      # until Postgres has reported itself genuinely READY (not just
+      # "started") before starting our application - starting the app
+      # too early would make its very first database connection attempt
+      # fail.
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/taskflow
+      SPRING_DATASOURCE_USERNAME: taskflow
+      SPRING_DATASOURCE_PASSWORD: taskflow
+      # A real deployment would supply its OWN secret here (for example,
+      # from a secrets manager), never reuse the placeholder value
+      # already committed in application.yml.
+      TASKFLOW_JWT_SECRET: "docker-compose-learning-secret-please-replace-me-0192837465"
+
+volumes:
+  taskflow-db-data:

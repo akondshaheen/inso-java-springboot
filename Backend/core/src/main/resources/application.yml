@@ -1,0 +1,142 @@
+# =============================================================================
+# STEP 2 OF OUR BUILD SEQUENCE: application.yml
+# =============================================================================
+#
+# Spring Boot reads this file automatically at startup and uses it to
+# configure the beans it creates. For example, it uses the "datasource"
+# section below to build the database connection pool bean, and the "jpa"
+# section to configure Hibernate - we never write that wiring code by hand.
+#
+# WHY YAML INSTEAD OF .properties?
+# YAML lets us express nested configuration (like "spring.datasource.url")
+# as an indented tree instead of one long dotted key per line. Both formats
+# are supported by Spring Boot; YAML is simply easier to read as
+# configuration grows.
+#
+# WHAT IS A SPRING PROFILE?
+# A "profile" is a named group of configuration that only becomes active
+# when Spring Boot is told to use it (via the SPRING_PROFILES_ACTIVE
+# environment variable, a command line flag, or a test annotation). This
+# lets the same codebase behave differently in different environments - for
+# example using a real Postgres database normally, but an in-memory H2
+# database during automated tests - without changing a single line of Java
+# code. The top section below applies to every profile; the "---" separated
+# section beneath it overrides values only for the "test" profile.
+
+spring:
+  application:
+    name: taskflow
+
+  # Database connection settings. Spring Boot uses these values to build a
+  # DataSource bean (a connection pool) automatically - we never call
+  # "DriverManager.getConnection()" ourselves.
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskflow
+    username: taskflow
+    password: taskflow
+    driver-class-name: org.postgresql.Driver
+    # WHAT IS CONNECTION POOLING, AND WHY DOES IT MATTER FOR PERFORMANCE?
+    # -----------------------------------------------------------------
+    # Opening a brand new TCP connection to Postgres for every single
+    # query would be slow - a real network handshake and authentication
+    # have to happen every time. A CONNECTION POOL instead opens a small
+    # number of connections ONCE, when the application starts, and hands
+    # them out to our code for the duration of each request, then takes
+    # them back for reuse instead of closing them. Spring Boot uses
+    # HikariCP (a fast, widely used pooling library) automatically
+    # whenever spring-boot-starter-data-jpa is on the classpath - we never
+    # wrote any pooling code ourselves. The settings below tune that pool:
+    hikari:
+      # The maximum number of simultaneous database connections this
+      # instance will ever open. Too small, and requests start queueing
+      # up waiting for a free connection under load; too large, and we
+      # can overwhelm the database server, which has its own connection
+      # limit shared across every application instance talking to it.
+      maximum-pool-size: 10
+      # How long (in milliseconds) a request is willing to wait for a
+      # free connection before giving up with an error, rather than
+      # hanging forever.
+      connection-timeout: 30000
+
+  jpa:
+    # "update" tells Hibernate to automatically adjust database tables to
+    # match our @Entity classes on startup. This is convenient while
+    # learning, but in a real production system a dedicated migration tool
+    # (Flyway or Liquibase) is normally used instead, because letting
+    # Hibernate change a live production schema automatically is risky. See
+    # src/main/resources/db/schema-reference.sql for the schema Hibernate
+    # generates from our entities, written out by hand for learning purposes.
+    hibernate:
+      ddl-auto: update
+    # Prints the actual SQL Hibernate generates to the console. This is
+    # extremely useful for understanding what a repository method really
+    # does, and for spotting problems like the N+1 query problem later.
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+# =============================================================================
+# SPRING BOOT ACTUATOR (PERFORMANCE / OPERATIONS STAGE)
+# =============================================================================
+# Actuator exposes a family of "/actuator/*" endpoints describing the
+# running application's own health and internals. By default, only
+# "/actuator/health" is exposed over HTTP - we explicitly add "metrics" here
+# so we can inspect things like HTTP request timings and JVM memory usage
+# while learning. In a real production deployment, these endpoints are
+# usually restricted further (a separate management port, or firewalled off
+# entirely) because they can reveal internal details useful to an attacker.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+
+# =============================================================================
+# CUSTOM CONFIGURATION PROPERTIES (STEP: SECURITY / JWT)
+# =============================================================================
+# Spring Boot is not limited to configuring ITS OWN beans from this file -
+# any bean we write ourselves (like security.JwtService) can also read
+# values from here using @Value("${taskflow.jwt.secret}"). This is far
+# better than hard-coding a secret directly in Java source code, for two
+# reasons: (1) the same compiled application can use a different secret in
+# each environment (local machine, CI, production) without recompiling
+# anything, and (2) in a real deployment this value would come from an
+# ENVIRONMENT VARIABLE or a secrets manager instead of being committed to
+# source control at all - Spring Boot automatically lets any property here
+# be overridden by an environment variable of the matching name
+# (TASKFLOW_JWT_SECRET), which is exactly how production secrets should be
+# supplied.
+taskflow:
+  jwt:
+    secret: "this-is-a-learning-project-secret-key-please-replace-me-3216549870"
+    expiration-minutes: 60
+
+# Logging configuration: controls how much detail is printed to the console.
+# We keep our own package at DEBUG so we can see our application's logs
+# clearly, while framework internals stay at their quieter default level.
+logging:
+  level:
+    com.inso.learning.taskflow: DEBUG
+
+---
+# The "test" profile is activated automatically by @ActiveProfiles("test")
+# in our test classes. It swaps Postgres for an in-memory H2 database, so
+# tests run fast and never depend on a real database server being installed
+# and running on the machine executing the build.
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:taskflow;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true

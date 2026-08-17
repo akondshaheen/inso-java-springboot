@@ -33,6 +33,7 @@ public class DSA {
         Map<String, List<Incident>> incidentsByIncidentCategory = new HashMap<>();
         List<Incident> distinctIncidents = new ArrayList<>();
 
+        incidents.stream()
         for(Incident incident: incidents){
 
             if(!incidentsByIncidentCategory.containsKey(incident.getCategory())){
